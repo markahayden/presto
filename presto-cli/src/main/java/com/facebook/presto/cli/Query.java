@@ -42,6 +42,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.facebook.presto.cli.ConsolePrinter.REAL_TERMINAL;
+import static com.facebook.presto.cli.StatusCode.ABORTED_BY_USER;
+import static com.facebook.presto.cli.StatusCode.NO_COLUMNS;
+import static com.facebook.presto.cli.StatusCode.OTHER;
+import static com.facebook.presto.cli.StatusCode.QUERY_GONE;
+import static com.facebook.presto.cli.StatusCode.SUCCESS;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -95,7 +100,7 @@ public class Query
         return client.isClearTransactionId();
     }
 
-    public void renderOutput(PrintStream out, OutputFormat outputFormat, boolean interactive)
+    public StatusCode renderOutput(PrintStream out, OutputFormat outputFormat, boolean interactive)
     {
         Thread clientThread = Thread.currentThread();
         SignalHandler oldHandler = Signal.handle(SIGINT, signal -> {
@@ -107,7 +112,7 @@ public class Query
             clientThread.interrupt();
         });
         try {
-            renderQueryOutput(out, outputFormat, interactive);
+            return renderQueryOutput(out, outputFormat, interactive);
         }
         finally {
             Signal.handle(SIGINT, oldHandler);
@@ -115,7 +120,7 @@ public class Query
         }
     }
 
-    private void renderQueryOutput(PrintStream out, OutputFormat outputFormat, boolean interactive)
+    private StatusCode renderQueryOutput(PrintStream out, OutputFormat outputFormat, boolean interactive)
     {
         StatusPrinter statusPrinter = null;
         @SuppressWarnings("resource")
@@ -136,7 +141,7 @@ public class Query
             }
             else if (results.getColumns() == null) {
                 errorChannel.printf("Query %s has no columns\n", results.getId());
-                return;
+                return NO_COLUMNS;
             }
             else {
                 renderResults(out, outputFormat, interactive, results.getColumns());
@@ -149,13 +154,18 @@ public class Query
 
         if (client.isClosed()) {
             errorChannel.println("Query aborted by user");
+            return ABORTED_BY_USER;
         }
         else if (client.isGone()) {
             errorChannel.println("Query is gone (server restarted?)");
+            return QUERY_GONE;
         }
         else if (client.isFailed()) {
             renderFailure(errorChannel);
+            return OTHER;
         }
+
+        return SUCCESS;
     }
 
     private void waitForData()
