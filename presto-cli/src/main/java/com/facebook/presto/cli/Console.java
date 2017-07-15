@@ -93,6 +93,7 @@ public class Console
     public void run()
     {
         ClientSession session = clientOptions.toClientSession();
+        TableauConfig tableauConfig = clientOptions.toTableauConfig();
         boolean hasQuery = !Strings.isNullOrEmpty(clientOptions.execute);
         boolean isFromFile = !Strings.isNullOrEmpty(clientOptions.file);
 
@@ -120,6 +121,26 @@ public class Console
             }
         }
 
+        if (clientOptions.outputFormat.toString().equals("TDE") && clientOptions.tdefile == null) {
+            throw new RuntimeException("must specify --tdefile when using --output-format TDE");
+        }
+
+        if (clientOptions.outputFormat.toString().equals("TABLEAU_SERVER") && clientOptions.tableauHost == null) {
+            throw new RuntimeException("must specify --tab-host when using --output-format TABLEAU_SERVER");
+        }
+
+        if (clientOptions.outputFormat.toString().equals("TABLEAU_SERVER") && clientOptions.tableauUsername == null) {
+            throw new RuntimeException("must specify --tab-u when using --output-format TABLEAU_SERVER");
+        }
+
+        if (clientOptions.outputFormat.toString().equals("TABLEAU_SERVER") && clientOptions.tableauPassword == null) {
+            throw new RuntimeException("must specify --tab-p when using --output-format TABLEAU_SERVER");
+        }
+
+        if (clientOptions.outputFormat.toString().equals("TABLEAU_SERVER") && clientOptions.tableauDatasource == null) {
+            throw new RuntimeException("must specify --tab-datasource when using --output-format TABLEAU_SERVER");
+        }
+
         AtomicBoolean exiting = new AtomicBoolean();
         interruptThreadOnExit(Thread.currentThread(), exiting);
 
@@ -138,6 +159,7 @@ public class Console
                 Optional.ofNullable(clientOptions.krb5ConfigPath),
                 Optional.ofNullable(clientOptions.krb5KeytabPath),
                 Optional.ofNullable(clientOptions.krb5CredentialCachePath),
+                tableauConfig,
                 !clientOptions.krb5DisableRemoteServiceHostnameCanonicalization,
                 clientOptions.authenticationEnabled)) {
             if (hasQuery) {

@@ -39,6 +39,7 @@ public class QueryRunner
 {
     private final AtomicReference<ClientSession> session;
     private final OkHttpClient httpClient;
+    private final TableauConfig tableauConfig;
 
     public QueryRunner(
             ClientSession session,
@@ -55,10 +56,12 @@ public class QueryRunner
             Optional<String> kerberosConfigPath,
             Optional<String> kerberosKeytabPath,
             Optional<String> kerberosCredentialCachePath,
+            TableauConfig tableauConfig,
             boolean kerberosUseCanonicalHostname,
             boolean kerberosEnabled)
     {
         this.session = new AtomicReference<>(requireNonNull(session, "session is null"));
+        this.tableauConfig = tableauConfig;
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
@@ -94,7 +97,7 @@ public class QueryRunner
 
     public Query startQuery(String query)
     {
-        return new Query(startInternalQuery(query));
+        return new Query(startInternalQuery(query), tableauConfig);
     }
 
     public StatementClient startInternalQuery(String query)

@@ -119,6 +119,30 @@ public class ClientOptions
     @Option(name = "--client-request-timeout", title = "client request timeout", description = "Client request timeout (default: 2m)")
     public Duration clientRequestTimeout = new Duration(2, MINUTES);
 
+    @Option(name = {"-tde", "--tdefile"}, title = "tdefile", description = "Location to write TDE when using TDE or TDE_SERVER output")
+    public String tdefile;
+
+    @Option(name = "--tab-host", title = "tableau host", description = "Server to upload the TDE file to")
+    public String tableauHost;
+
+    @Option(name = {"--tab-u", "--tab-username"}, title = "tableau username", description = "Username for Tableau Server")
+    public String tableauUsername;
+
+    @Option(name = {"--tab-p", "--tab-password"}, title = "tableau password", description = "Password for Tableau Server")
+    public String tableauPassword;
+
+    @Option(name = "--tab-site", title = "tableau siteID", description = "SiteID for Tableau Server")
+    public String tableauSiteID = "";
+
+    @Option(name = "--tab-project", title = "tableau project", description = "Project for Tableau Server")
+    public String tableauProject = "default";
+
+    @Option(name = "--tab-datasource", title = "tableau datasource", description = "Name of the data source on Tableau Server")
+    public String tableauDatasource;
+
+    @Option(name = "--tab-overwrite", title = "tableau overwrite", description = "Overwrite on tableau server")
+    public boolean tableauOverwrite;
+
     public enum OutputFormat
     {
         ALIGNED,
@@ -127,6 +151,8 @@ public class ClientOptions
         TSV,
         CSV_HEADER,
         TSV_HEADER,
+        TDE,
+        TABLEAU_SERVER,
         NULL
     }
 
@@ -146,6 +172,34 @@ public class ClientOptions
                 null,
                 debug,
                 clientRequestTimeout);
+    }
+
+    public TableauConfig toTableauConfig()
+    {
+        TableauConfig config = new TableauConfig();
+        if (tdefile != null) {
+            config.setExtractName(tdefile);
+        }
+        if (tableauHost != null) {
+            config.setHost(tableauHost);
+        }
+        if (tableauUsername != null) {
+            config.setUsername(tableauUsername);
+        }
+        if (tableauPassword != null) {
+            config.setPassword(tableauPassword);
+        }
+        if (tableauSiteID != null) {
+            config.setSiteID(tableauSiteID);
+        }
+        if (tableauProject != null) {
+            config.setProject(tableauProject);
+        }
+        if (tableauDatasource != null) {
+            config.setDatasource(tableauDatasource);
+        }
+        config.setOverwrite(tableauOverwrite);
+        return config;
     }
 
     public static URI parseServer(String server)
