@@ -282,6 +282,8 @@ public class Query
                 return new TdePrinter(fieldNames, fieldTypes, tableauConfig, false);
             case TABLEAU_SERVER:
                 return new TdePrinter(fieldNames, fieldTypes, tableauConfig, true);
+            case SQPUG:
+                return new SqpugPrinter(fieldNames, writer);
             case NULL:
                 return new NullPrinter();
         }
